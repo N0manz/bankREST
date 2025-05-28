@@ -1,9 +1,12 @@
 package com.example.bankcards.controller;
 
+import com.example.bankcards.dto.CardDto;
+import com.example.bankcards.mapper.CardMapper;
 import com.example.bankcards.model.Card;
 import com.example.bankcards.model.User;
 import com.example.bankcards.repository.CardRepository;
 import com.example.bankcards.repository.UserRepository;
+import com.example.bankcards.util.SecurityUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -20,29 +23,30 @@ import static com.example.bankcards.util.SecurityUtil.getCurrentUser;
 @RequestMapping("/cards")
 public class CardController {
     private final CardRepository cardRepository;
-    private final UserRepository userRepository;
-
     @Autowired
-    public CardController(CardRepository cardRepository, UserRepository userRepository) {
+    public CardController(CardRepository cardRepository) {
         this.cardRepository = cardRepository;
-        this.userRepository = userRepository;
     }
 
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     @GetMapping
-    @PreAuthorize("hasRole('USER')")
-    public Page<Card> getCards(
+    public Page<CardDto> getAllCards(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size,
             @RequestParam(required = false) String status
     ) {
-        User currentUser = getCurrentUser();
-        Pageable pageable = PageRequest.of(page, size, Sort.by("expirationDate").descending());
+        User currentUser = SecurityUtil.getCurrentUser();
+        Pageable pageable = PageRequest.of(page, size);
 
-        if(status != null){
-            return cardRepository.findByUserAndStatus(currentUser, status, pageable);
-        }else{
-            return cardRepository.findByUser(currentUser, pageable);
+        Page<Card> cards;
+
+        if (status != null && !status.isBlank()) {
+            cards = cardRepository.findByUserAndStatus(currentUser, status, pageable);
+        } else {
+            cards = cardRepository.findByUser(currentUser, pageable);
         }
+
+        return cards.map(CardMapper::toDto);
     }
 
 }
