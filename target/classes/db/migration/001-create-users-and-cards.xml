@@ -1,0 +1,50 @@
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="1" author="you">
+
+        <!-- USERS table -->
+        <createTable tableName="users">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="username" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="password" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="role" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <!-- CARDS table -->
+        <createTable tableName="cards">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="number" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="expiration_date" type="DATE"/>
+            <column name="status" type="VARCHAR(50)"/>
+            <column name="balance" type="DECIMAL(19,2)"/>
+            <column name="user_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <!-- FOREIGN KEY from cards to users -->
+        <addForeignKeyConstraint
+                baseTableName="cards"
+                baseColumnNames="user_id"
+                constraintName="fk_card_user"
+                referencedTableName="users"
+                referencedColumnNames="id"/>
+    </changeSet>
+
+</databaseChangeLog>
